@@ -142,7 +142,6 @@
         ];
 
         let currentQuestionIndex = 0;
-        const answers = [];
 
         function loadQuestion() {
             const questionList = document.getElementById('question-list');
@@ -194,7 +193,10 @@
         }
 
         function getScore() {
-            return answers.filter(answer => answer).length;
+            return questions.filter((q, i) => {
+                const selectedAnswer = document.querySelector(`input[name="answer-${i}"]:checked`);
+                return selectedAnswer && selectedAnswer.value === q.correctAnswer;
+            }).length;
         }
 
         window.onload = function() {
