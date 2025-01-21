@@ -8,7 +8,7 @@
         /* Genel Sayfa Stili */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f7f7f7;
+            background-color: #000; /* Siyah Arka Plan */
             color: #fff;
             margin: 0;
             padding: 0;
@@ -16,7 +16,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-image: linear-gradient(to right, #4e73df, #1e3c72);
+            background-image: linear-gradient(to right, #1e3c72, #4e73df);
         }
         .container {
             text-align: center;
@@ -65,7 +65,13 @@
             color: #dcdcdc;
             margin-top: 20px;
         }
+        canvas {
+            margin-top: 30px;
+            background-color: #333;
+            border-radius: 10px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -80,11 +86,13 @@
         </div>
         <button class="refresh-btn" onclick="getBitcoinData()">Yenile</button>
         <div class="lastUpdated" id="lastUpdated">Son Güncelleme: -</div>
+        <canvas id="priceChart" width="400" height="200"></canvas>
     </div>
 
     <script>
-        // CoinGecko API URL
         const apiUrl = 'https://api.coingecko.com/api/v3/coins/bitcoin';
+        let priceData = []; // Fiyat verilerini saklamak için
+        let timeLabels = []; // Zaman etiketlerini saklamak için
 
         // Bitcoin verilerini al
         function getBitcoinData() {
@@ -105,6 +113,11 @@
                     document.getElementById('low24h').innerHTML = `24 Saatlik En Düşük: $${low24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                     document.getElementById('volume24h').innerHTML = `24 Saatlik İşlem Hacmi: $${volume24h.toLocaleString()}`;
                     document.getElementById('lastUpdated').innerHTML = `Son Güncelleme: ${lastUpdated}`;
+
+                    // Grafik için verileri ekle
+                    priceData.push(price);
+                    timeLabels.push(lastUpdated);
+                    updateChart();
                 })
                 .catch(error => {
                     console.error('API Hatası:', error);
@@ -115,6 +128,51 @@
                     document.getElementById('volume24h').innerHTML = 'Veri alınamadı.';
                     document.getElementById('lastUpdated').innerHTML = 'Son Güncelleme: -';
                 });
+        }
+
+        // Grafik güncelleme fonksiyonu
+        function updateChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line', // Çizgi grafik
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'Bitcoin Fiyatı',
+                        data: priceData,
+                        borderColor: '#ffcb00',
+                        backgroundColor: 'rgba(255, 203, 0, 0.3)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) { return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `$${tooltipItem.raw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         // Sayfa yüklendiğinde Bitcoin bilgilerini al
