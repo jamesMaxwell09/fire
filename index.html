@@ -101,6 +101,12 @@
         .next-btn:hover {
             background-color: #00b248;
         }
+
+        .feedback {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -113,7 +119,7 @@
         <form id="quiz-form">
             <div id="question-list"></div>
             <div class="buttons">
-                <button class="btn" type="button" id="submit-btn" disabled onclick="submitQuiz()">Gönder</button>
+                <button class="btn next-btn" type="button" id="next-btn" onclick="nextQuestion()">Sonraki Soru</button>
             </div>
         </form>
     </div>
@@ -152,38 +158,34 @@
                 <div class="question-item">
                     <div class="question">${question.question}</div>
                     <div class="answer-options">
-                        <label><input type="radio" name="answer-${currentQuestionIndex}" value="true"> Doğru</label>
-                        <label><input type="radio" name="answer-${currentQuestionIndex}" value="false"> Yanlış</label>
+                        <label><input type="radio" name="answer-${currentQuestionIndex}" value="true" onclick="checkAnswer(${currentQuestionIndex}, 'true')"> Doğru</label>
+                        <label><input type="radio" name="answer-${currentQuestionIndex}" value="false" onclick="checkAnswer(${currentQuestionIndex}, 'false')"> Yanlış</label>
                     </div>
+                    <div class="feedback" id="feedback-${currentQuestionIndex}"></div>
                 </div>
             `;
             questionList.innerHTML = questionItemHTML;
         }
 
-        function enableSubmit() {
-            const selectedOption = document.querySelector(`input[name="answer-${currentQuestionIndex}"]:checked`);
-            const submitButton = document.getElementById('submit-btn');
-            if (selectedOption) {
-                submitButton.disabled = false;
+        function checkAnswer(index, selectedAnswer) {
+            const question = questions[index];
+            const feedbackElement = document.getElementById(`feedback-${index}`);
+
+            if (selectedAnswer === question.correctAnswer) {
+                feedbackElement.textContent = 'Doğru cevap!';
+                feedbackElement.style.color = 'green';
             } else {
-                submitButton.disabled = true;
+                feedbackElement.textContent = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
+                feedbackElement.style.color = 'red';
             }
         }
 
-        function submitQuiz() {
+        function nextQuestion() {
             const selectedOption = document.querySelector(`input[name="answer-${currentQuestionIndex}"]:checked`);
-            const userAnswer = selectedOption.value;
-            const question = questions[currentQuestionIndex];
-            const answerCorrect = userAnswer === question.correctAnswer;
-
-            answers.push(answerCorrect);
-
-            if (answerCorrect) {
-                alert('Doğru cevap!');
-            } else {
-                alert(`Yanlış cevap. Doğru cevap: ${question.correctAnswer}`);
+            if (!selectedOption) {
+                alert('Lütfen bir cevap seçin.');
+                return;
             }
-
             currentQuestionIndex++;
 
             if (currentQuestionIndex < questions.length) {
@@ -200,13 +202,6 @@
         window.onload = function() {
             loadQuestion();
         };
-        
-        // Dinamik olarak cevapları seçmeye imkan tanıyan event
-        document.addEventListener('change', function(e) {
-            if (e.target.name && e.target.name.startsWith('answer')) {
-                enableSubmit();
-            }
-        });
     </script>
 
 </body>
