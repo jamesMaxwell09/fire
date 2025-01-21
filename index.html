@@ -5,34 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Öğrenci Sınavı</title>
     <style>
-        /* YouTube Temalı Sayfa Stili */
+        /* CoinMarketCap Temalı Sayfa Stili */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #181818;
+            background-color: #1e1e1e;
             color: #fff;
             margin: 0;
             padding: 0;
         }
         .header {
-            background-color: #222;
+            background-color: #131313;
             padding: 20px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
         h1 {
-            color: #ff0000;
+            color: #ff9900;
             font-size: 3rem;
             margin: 0;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
             padding: 20px;
-            background-color: #333;
+            background-color: #282828;
             border-radius: 8px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
         }
         .question {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin-bottom: 20px;
         }
         .answer-box {
@@ -50,33 +51,49 @@
             margin-top: 10px;
             border: none;
             border-radius: 5px;
+            background-color: #333;
+            color: #fff;
         }
         .buttons {
-            display: flex;
-            justify-content: space-between;
             margin-top: 20px;
+            display: flex;
+            justify-content: flex-start;
         }
         .btn {
-            background-color: #ff0000;
+            background-color: #ff9900;
             color: #fff;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1.1rem;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
         }
         .btn:hover {
-            background-color: #e60000;
+            background-color: #e68a00;
         }
-        .question-btn {
+        .next-btn {
             background-color: #00c853;
         }
-        .question-btn:hover {
+        .next-btn:hover {
             background-color: #00b248;
         }
         .result {
             margin-top: 20px;
             font-size: 1.5rem;
+            color: #ff9900;
+        }
+        .question-list {
+            margin-top: 20px;
+            border-top: 2px solid #444;
+            padding-top: 10px;
+        }
+        .question-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -87,22 +104,9 @@
     </div>
 
     <div class="container">
-        <div class="question" id="question"></div>
-
-        <!-- Boşluk doldurma input -->
-        <div class="answer-box" id="answer-box"></div>
-
-        <!-- Doğru/yanlış butonları -->
-        <div class="buttons" id="true-false-buttons" style="display: none;">
-            <button class="btn question-btn" onclick="checkAnswer('true')">Doğru</button>
-            <button class="btn question-btn" onclick="checkAnswer('false')">Yanlış</button>
+        <div id="question-list" class="question-list">
+            <!-- Sorular burada alt alta sıralanacak -->
         </div>
-
-        <!-- Sonuç -->
-        <div class="result" id="result"></div>
-
-        <!-- Sonraki soru butonu -->
-        <button class="btn" id="next-btn" style="display: none;" onclick="nextQuestion()">Sonraki Soru</button>
     </div>
 
     <script>
@@ -132,66 +136,51 @@
         let currentQuestionIndex = 0;
 
         function loadQuestion() {
-            const questionElement = document.getElementById('question');
-            const answerBox = document.getElementById('answer-box');
-            const trueFalseButtons = document.getElementById('true-false-buttons');
-            const result = document.getElementById('result');
-            const nextBtn = document.getElementById('next-btn');
-
-            result.innerHTML = '';
-            nextBtn.style.display = 'none';
-
+            const questionList = document.getElementById('question-list');
             const question = questions[currentQuestionIndex];
-
-            if (question.type === 'fill-in-the-blank') {
-                questionElement.innerHTML = question.question;
-                answerBox.innerHTML = `<input type="text" id="user-answer" placeholder="Cevabınızı buraya girin">`;
-                trueFalseButtons.style.display = 'none';
-                answerBox.style.display = 'block';
-            } else if (question.type === 'true-false') {
-                questionElement.innerHTML = question.question;
-                answerBox.innerHTML = '';
-                trueFalseButtons.style.display = 'block';
-                answerBox.style.display = 'none';
-            }
+            let questionItemHTML = `
+                <div class="question-item">
+                    <div class="question">${question.question}</div>
+                    <div class="answer-box" id="answer-box-${currentQuestionIndex}">
+                        <input type="text" id="user-answer-${currentQuestionIndex}" placeholder="Cevabınızı buraya girin">
+                    </div>
+                    <button class="btn" onclick="checkAnswer(${currentQuestionIndex})">Gönder</button>
+                    <div id="result-${currentQuestionIndex}" class="result"></div>
+                </div>
+            `;
+            questionList.innerHTML += questionItemHTML;
         }
 
-        function checkAnswer(answer) {
-            const question = questions[currentQuestionIndex];
-            const result = document.getElementById('result');
-            const nextBtn = document.getElementById('next-btn');
+        function checkAnswer(index) {
+            const userAnswer = document.getElementById(`user-answer-${index}`).value.trim().toLowerCase();
+            const question = questions[index];
+            const resultDiv = document.getElementById(`result-${index}`);
+            const sendButton = document.querySelector(`#answer-box-${index} button`);
 
-            if (question.type === 'fill-in-the-blank') {
-                const userAnswer = document.getElementById('user-answer').value.trim().toLowerCase();
-                if (userAnswer === question.correctAnswer.toLowerCase()) {
-                    result.innerHTML = 'Doğru cevap!';
-                } else {
-                    result.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
-                }
-            } else if (question.type === 'true-false') {
-                if (answer === question.correctAnswer) {
-                    result.innerHTML = 'Doğru cevap!';
-                } else {
-                    result.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
-                }
-            }
-
-            nextBtn.style.display = 'block';
-        }
-
-        function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                loadQuestion();
+            if (userAnswer === question.correctAnswer.toLowerCase()) {
+                resultDiv.innerHTML = 'Doğru cevap!';
+                resultDiv.style.color = '#00c853';
             } else {
-                const result = document.getElementById('result');
-                result.innerHTML = 'Tüm soruları tamamladınız!';
-                document.getElementById('next-btn').style.display = 'none';
+                resultDiv.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
+                resultDiv.style.color = '#ff0000';
+            }
+
+            sendButton.disabled = true; // Cevaplandıktan sonra butonu devre dışı bırak
+            if (index < questions.length - 1) {
+                const nextButton = document.createElement('button');
+                nextButton.classList.add('btn', 'next-btn');
+                nextButton.innerHTML = 'Sonraki Soru';
+                nextButton.onclick = function() {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                };
+                document.getElementById(`result-${index}`).appendChild(nextButton);
             }
         }
 
-        // Sayfa ilk yüklendiğinde soruları yükle
-        window.onload = loadQuestion;
+        window.onload = function() {
+            loadQuestion();
+        };
     </script>
 
 </body>
