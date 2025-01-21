@@ -136,6 +136,10 @@
         let currentQuestionIndex = 0;
 
         function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                return;
+            }
+
             const questionList = document.getElementById('question-list');
             const question = questions[currentQuestionIndex];
             let questionItemHTML = `
