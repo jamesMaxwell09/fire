@@ -3,122 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Fiyatı ve Bilgileri</title>
+    <title>Öğrenci Sınavı</title>
     <style>
-        /* Genel Sayfa Stili */
+        /* YouTube Temalı Sayfa Stili */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #000; /* Siyah Arka Plan */
+            background-color: #181818;
             color: #fff;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
-        .container {
+        .header {
+            background-color: #222;
+            padding: 20px;
             text-align: center;
-            background-color: #1d2c54;
-            padding: 40px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
         h1 {
+            color: #ff0000;
             font-size: 3rem;
-            color: #ffcb00;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        .question {
+            font-size: 1.2rem;
             margin-bottom: 20px;
         }
-        .data {
-            font-size: 2.5rem;
-            color: #fff;
-            font-weight: bold;
-        }
-        .data span {
-            font-size: 1.2rem;
-            color: #cfcfcf;
-        }
-        .info {
-            margin-top: 15px;
-            font-size: 1.2rem;
-            color: #ddd;
-        }
-        .refresh-btn {
-            margin-top: 20px;
-            padding: 12px 30px;
-            font-size: 18px;
-            background-color: #ffcb00;
-            color: #1e3c72;
-            border: none;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-        }
-        .refresh-btn:hover {
-            background-color: #ffb100;
-        }
-        .lastUpdated {
+        .answer-box {
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
             font-size: 1rem;
-            color: #dcdcdc;
+            color: #fff;
+        }
+        .answer-box input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
             margin-top: 20px;
+        }
+        .btn {
+            background-color: #ff0000;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .btn:hover {
+            background-color: #e60000;
+        }
+        .question-btn {
+            background-color: #00c853;
+        }
+        .question-btn:hover {
+            background-color: #00b248;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
 
+    <div class="header">
+        <h1>Öğrenci Sınavı</h1>
+    </div>
+
     <div class="container">
-        <h1>Bitcoin</h1>
-        <div id="price" class="data">Yükleniyor...</div>
-        <div class="info">
-            <div id="marketCap">Piyasa Değeri: -</div>
-            <div id="high24h">24 Saatlik En Yüksek: -</div>
-            <div id="low24h">24 Saatlik En Düşük: -</div>
-            <div id="volume24h">24 Saatlik İşlem Hacmi: -</div>
+        <div class="question" id="question"></div>
+
+        <!-- Boşluk doldurma input -->
+        <div class="answer-box" id="answer-box"></div>
+
+        <!-- Doğru/yanlış butonları -->
+        <div class="buttons" id="true-false-buttons" style="display: none;">
+            <button class="btn question-btn" onclick="checkAnswer('true')">Doğru</button>
+            <button class="btn question-btn" onclick="checkAnswer('false')">Yanlış</button>
         </div>
-        <button class="refresh-btn" onclick="getBitcoinData()">Yenile</button>
-        <div class="lastUpdated" id="lastUpdated">Son Güncelleme: -</div>
+
+        <!-- Sonuç -->
+        <div class="result" id="result"></div>
+
+        <!-- Sonraki soru butonu -->
+        <button class="btn" id="next-btn" style="display: none;" onclick="nextQuestion()">Sonraki Soru</button>
     </div>
 
     <script>
-        const apiUrl = 'https://api.coingecko.com/api/v3/coins/bitcoin';
+        const questions = [
+            {
+                type: 'fill-in-the-blank', // Boşluk doldurma
+                question: 'JavaScript, HTML ve CSS ile birlikte ____ web geliştirmede kullanılır.',
+                correctAnswer: 'dinamik',
+            },
+            {
+                type: 'true-false', // Doğru/Yanlış
+                question: 'JavaScript, sadece istemci tarafında çalışır.',
+                correctAnswer: 'false',
+            },
+            {
+                type: 'fill-in-the-blank', // Boşluk doldurma
+                question: 'Python, ____ programlama dillerindendir.',
+                correctAnswer: 'yüksek seviyeli',
+            },
+            {
+                type: 'true-false', // Doğru/Yanlış
+                question: 'CSS, sadece metin düzenlemeleri yapar.',
+                correctAnswer: 'false',
+            },
+        ];
 
-        // Bitcoin verilerini al
-        function getBitcoinData() {
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    const price = data.market_data.current_price.usd;
-                    const marketCap = data.market_data.market_cap.usd;
-                    const high24h = data.market_data.high_24h.usd;
-                    const low24h = data.market_data.low_24h.usd;
-                    const volume24h = data.market_data.total_volume.usd;
-                    const lastUpdated = new Date(data.market_data.last_updated).toLocaleTimeString('tr-TR', {hour12: false});
+        let currentQuestionIndex = 0;
 
-                    // Fiyat ve diğer bilgileri ekrana yazdır
-                    document.getElementById('price').innerHTML = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                    document.getElementById('marketCap').innerHTML = `Piyasa Değeri: $${marketCap.toLocaleString()}`;
-                    document.getElementById('high24h').innerHTML = `24 Saatlik En Yüksek: $${high24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                    document.getElementById('low24h').innerHTML = `24 Saatlik En Düşük: $${low24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                    document.getElementById('volume24h').innerHTML = `24 Saatlik İşlem Hacmi: $${volume24h.toLocaleString()}`;
-                    document.getElementById('lastUpdated').innerHTML = `Son Güncelleme: ${lastUpdated}`;
-                })
-                .catch(error => {
-                    console.error('API Hatası:', error);
-                    document.getElementById('price').innerHTML = 'Veri alınamadı.';
-                    document.getElementById('marketCap').innerHTML = 'Veri alınamadı.';
-                    document.getElementById('high24h').innerHTML = 'Veri alınamadı.';
-                    document.getElementById('low24h').innerHTML = 'Veri alınamadı.';
-                    document.getElementById('volume24h').innerHTML = 'Veri alınamadı.';
-                    document.getElementById('lastUpdated').innerHTML = 'Son Güncelleme: -';
-                });
+        function loadQuestion() {
+            const questionElement = document.getElementById('question');
+            const answerBox = document.getElementById('answer-box');
+            const trueFalseButtons = document.getElementById('true-false-buttons');
+            const result = document.getElementById('result');
+            const nextBtn = document.getElementById('next-btn');
+
+            result.innerHTML = '';
+            nextBtn.style.display = 'none';
+
+            const question = questions[currentQuestionIndex];
+
+            if (question.type === 'fill-in-the-blank') {
+                questionElement.innerHTML = question.question;
+                answerBox.innerHTML = `<input type="text" id="user-answer" placeholder="Cevabınızı buraya girin">`;
+                trueFalseButtons.style.display = 'none';
+                answerBox.style.display = 'block';
+            } else if (question.type === 'true-false') {
+                questionElement.innerHTML = question.question;
+                answerBox.innerHTML = '';
+                trueFalseButtons.style.display = 'block';
+                answerBox.style.display = 'none';
+            }
         }
 
-        // Sayfa yüklendiğinde Bitcoin bilgilerini al
-        window.onload = function() {
-            getBitcoinData();
-        };
+        function checkAnswer(answer) {
+            const question = questions[currentQuestionIndex];
+            const result = document.getElementById('result');
+            const nextBtn = document.getElementById('next-btn');
+
+            if (question.type === 'fill-in-the-blank') {
+                const userAnswer = document.getElementById('user-answer').value.trim().toLowerCase();
+                if (userAnswer === question.correctAnswer.toLowerCase()) {
+                    result.innerHTML = 'Doğru cevap!';
+                } else {
+                    result.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
+                }
+            } else if (question.type === 'true-false') {
+                if (answer === question.correctAnswer) {
+                    result.innerHTML = 'Doğru cevap!';
+                } else {
+                    result.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
+                }
+            }
+
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                const result = document.getElementById('result');
+                result.innerHTML = 'Tüm soruları tamamladınız!';
+                document.getElementById('next-btn').style.display = 'none';
+            }
+        }
+
+        // Sayfa ilk yüklendiğinde soruları yükle
+        window.onload = loadQuestion;
     </script>
 
 </body>
