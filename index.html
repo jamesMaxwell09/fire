@@ -3,97 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Öğrenci Sınavı</title>
+    <title>Öğrenci Sınavı - Google Form Tarzı</title>
     <style>
-        /* CoinMarketCap Temalı Sayfa Stili */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #1e1e1e;
-            color: #fff;
+            background-color: #f4f4f9;
+            color: #333;
             margin: 0;
             padding: 0;
         }
+
         .header {
-            background-color: #131313;
+            background-color: #4caf50;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
+
         h1 {
-            color: #ff9900;
-            font-size: 3rem;
+            color: white;
+            font-size: 2.5rem;
             margin: 0;
         }
+
         .container {
-            max-width: 900px;
+            width: 80%;
             margin: 40px auto;
             padding: 20px;
-            background-color: #282828;
+            background-color: #fff;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
         }
+
         .question {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
         }
+
         .answer-box {
-            background-color: #444;
-            padding: 10px;
-            border-radius: 5px;
             margin-top: 10px;
-            font-size: 1rem;
-            color: #fff;
         }
-        .answer-box input[type="text"] {
+
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             font-size: 1rem;
             margin-top: 10px;
-            border: none;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            background-color: #333;
-            color: #fff;
+            box-sizing: border-box;
         }
+
         .buttons {
             margin-top: 20px;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
         }
+
         .btn {
-            background-color: #ff9900;
-            color: #fff;
+            background-color: #4caf50;
+            color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1.1rem;
-            margin-right: 10px;
             transition: background-color 0.3s ease;
         }
+
         .btn:hover {
-            background-color: #e68a00;
+            background-color: #45a049;
         }
-        .next-btn {
-            background-color: #00c853;
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-        .next-btn:hover {
-            background-color: #00b248;
-        }
+
         .result {
-            margin-top: 20px;
-            font-size: 1.5rem;
-            color: #ff9900;
+            font-size: 1.2rem;
+            margin-top: 15px;
         }
-        .question-list {
-            margin-top: 20px;
-            border-top: 2px solid #444;
-            padding-top: 10px;
-        }
+
         .question-item {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -104,9 +96,12 @@
     </div>
 
     <div class="container">
-        <div id="question-list" class="question-list">
-            <!-- Sorular burada alt alta sıralanacak -->
-        </div>
+        <form id="quiz-form">
+            <div id="question-list"></div>
+            <div class="buttons">
+                <button class="btn" type="button" id="submit-btn" disabled onclick="submitQuiz()">Gönder</button>
+            </div>
+        </form>
     </div>
 
     <script>
@@ -134,52 +129,56 @@
         ];
 
         let currentQuestionIndex = 0;
+        const answers = [];
 
         function loadQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                return;
-            }
-
             const questionList = document.getElementById('question-list');
             const question = questions[currentQuestionIndex];
             let questionItemHTML = `
                 <div class="question-item">
                     <div class="question">${question.question}</div>
-                    <div class="answer-box" id="answer-box-${currentQuestionIndex}">
-                        <input type="text" id="user-answer-${currentQuestionIndex}" placeholder="Cevabınızı buraya girin">
+                    <div class="answer-box">
+                        <input type="text" id="user-answer-${currentQuestionIndex}" placeholder="Cevabınızı buraya girin" oninput="enableSubmit(${currentQuestionIndex})">
                     </div>
-                    <button class="btn" onclick="checkAnswer(${currentQuestionIndex})">Gönder</button>
-                    <div id="result-${currentQuestionIndex}" class="result"></div>
                 </div>
             `;
-            questionList.innerHTML += questionItemHTML;
+            questionList.innerHTML = questionItemHTML;
         }
 
-        function checkAnswer(index) {
-            const userAnswer = document.getElementById(`user-answer-${index}`).value.trim().toLowerCase();
-            const question = questions[index];
-            const resultDiv = document.getElementById(`result-${index}`);
-            const sendButton = document.querySelector(`#answer-box-${index} button`);
-
-            if (userAnswer === question.correctAnswer.toLowerCase()) {
-                resultDiv.innerHTML = 'Doğru cevap!';
-                resultDiv.style.color = '#00c853';
+        function enableSubmit(index) {
+            const userAnswer = document.getElementById(`user-answer-${index}`).value.trim();
+            const submitButton = document.getElementById('submit-btn');
+            if (userAnswer !== '') {
+                submitButton.disabled = false;
             } else {
-                resultDiv.innerHTML = `Yanlış cevap. Doğru cevap: ${question.correctAnswer}`;
-                resultDiv.style.color = '#ff0000';
+                submitButton.disabled = true;
+            }
+        }
+
+        function submitQuiz() {
+            const userAnswer = document.getElementById(`user-answer-${currentQuestionIndex}`).value.trim().toLowerCase();
+            const question = questions[currentQuestionIndex];
+            const answerCorrect = userAnswer === question.correctAnswer.toLowerCase();
+
+            answers.push(answerCorrect);
+
+            if (answerCorrect) {
+                alert('Doğru cevap!');
+            } else {
+                alert(`Yanlış cevap. Doğru cevap: ${question.correctAnswer}`);
             }
 
-            sendButton.disabled = true; // Cevaplandıktan sonra butonu devre dışı bırak
-            if (index < questions.length - 1) {
-                const nextButton = document.createElement('button');
-                nextButton.classList.add('btn', 'next-btn');
-                nextButton.innerHTML = 'Sonraki Soru';
-                nextButton.onclick = function() {
-                    currentQuestionIndex++;
-                    loadQuestion();
-                };
-                document.getElementById(`result-${index}`).appendChild(nextButton);
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                alert('Quiz bitti! Puanınız: ' + getScore());
             }
+        }
+
+        function getScore() {
+            return answers.filter(answer => answer).length;
         }
 
         window.onload = function() {
