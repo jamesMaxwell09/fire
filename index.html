@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Fiyatı</title>
+    <title>Bitcoin Fiyatı ve Bilgileri</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -17,7 +17,7 @@
         .container {
             text-align: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             background-color: white;
             padding: 30px;
             border-radius: 15px;
@@ -28,9 +28,9 @@
             color: #ff9800;
             font-size: 2rem;
         }
-        #price {
-            font-size: 2.5rem;
+        .data {
             margin-top: 20px;
+            font-size: 1.2rem;
             color: #4caf50;
             font-weight: bold;
         }
@@ -52,40 +52,67 @@
         .refresh-btn:hover {
             background-color: #f57c00;
         }
+        .additional-info {
+            margin-top: 20px;
+            color: #388e3c;
+        }
+        .info {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Bitcoin Fiyatı</h1>
-        <div id="price">Yükleniyor...</div>
+        <h1>Bitcoin Fiyatı ve Bilgileri</h1>
+        <div id="price" class="data">Yükleniyor...</div>
         <div id="lastUpdated">Son Güncelleme: -</div>
-        <button class="refresh-btn" onclick="getBitcoinPrice()">Yenile</button>
+        <div class="additional-info">
+            <div id="marketCap" class="info">Piyasa Değeri: -</div>
+            <div id="high24h" class="info">24 Saatlik En Yüksek: -</div>
+            <div id="low24h" class="info">24 Saatlik En Düşük: -</div>
+            <div id="volume24h" class="info">24 Saatlik İşlem Hacmi: -</div>
+        </div>
+        <button class="refresh-btn" onclick="getBitcoinData()">Yenile</button>
     </div>
 
     <script>
         // API URL
-        const apiUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';
+        const apiUrl = 'https://api.coingecko.com/api/v3/coins/bitcoin';
 
-        // Bitcoin fiyatını al
-        function getBitcoinPrice() {
+        // Bitcoin fiyatını ve diğer bilgileri al
+        function getBitcoinData() {
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    const price = data.bitcoin.usd;
-                    const lastUpdated = new Date().toLocaleTimeString();
-                    document.getElementById('price').innerHTML = `$${price}`;
+                    const price = data.market_data.current_price.usd;
+                    const marketCap = data.market_data.market_cap.usd;
+                    const high24h = data.market_data.high_24h.usd;
+                    const low24h = data.market_data.low_24h.usd;
+                    const volume24h = data.market_data.total_volume.usd;
+                    const lastUpdated = new Date(data.market_data.last_updated).toLocaleTimeString('tr-TR', {hour12: false});
+
+                    // Fiyatları ve diğer bilgileri ekrana yazdır
+                    document.getElementById('price').innerHTML = `$${price.toFixed(2)}`; // Ondalık sayı
+                    document.getElementById('marketCap').innerHTML = `Piyasa Değeri: $${marketCap.toLocaleString()}`;
+                    document.getElementById('high24h').innerHTML = `24 Saatlik En Yüksek: $${high24h.toFixed(2)}`;
+                    document.getElementById('low24h').innerHTML = `24 Saatlik En Düşük: $${low24h.toFixed(2)}`;
+                    document.getElementById('volume24h').innerHTML = `24 Saatlik İşlem Hacmi: $${volume24h.toLocaleString()}`;
                     document.getElementById('lastUpdated').innerHTML = `Son Güncelleme: ${lastUpdated}`;
                 })
                 .catch(error => {
                     console.error('API Hatası:', error);
                     document.getElementById('price').innerHTML = 'Veri alınamadı.';
+                    document.getElementById('marketCap').innerHTML = 'Veri alınamadı.';
+                    document.getElementById('high24h').innerHTML = 'Veri alınamadı.';
+                    document.getElementById('low24h').innerHTML = 'Veri alınamadı.';
+                    document.getElementById('volume24h').innerHTML = 'Veri alınamadı.';
                 });
         }
 
-        // Sayfa yüklendiğinde fiyatı getir
+        // Sayfa yüklendiğinde fiyatı ve bilgileri getir
         window.onload = function() {
-            getBitcoinPrice();
+            getBitcoinData();
         };
     </script>
 
